@@ -1,8 +1,3 @@
-// import type { InferSelectModel } from "drizzle-orm";
-// import { users } from "../../db/schema";
-
-// export type User = InferSelectModel<typeof users>;
-
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { userPreferences } from "../../db/schema/userPreferences.js";
 import { users } from "../../db/schema/users.js";

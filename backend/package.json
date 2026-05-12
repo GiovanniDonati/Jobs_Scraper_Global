@@ -2,21 +2,22 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "Backend para scraping e API de vagas do LinkedIn",
-  "main": "index.js",
+  "main": "index.ts",
   "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node src/server.js",
-    "scraper": "node index.js",
-    "scraper:watch": "nodemon index.js",
-    "api": "node src/server.js",
+    "start": "tsx src/server.ts",
+    "dev": "tsx src/server.ts",
+    "scraper": "tsx index.ts",
+    "scraper:watch": "nodemon index.ts",
+    "api": "tsx src/server.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest --watch",
     "validate": "npm test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "clear-cache": "tsx src/cache/clearCache.ts"
   },
   "keywords": [
     "linkedin",
@@ -43,7 +44,8 @@
     "redis": "^4.7.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3"
   },
   "engines": {
     "node": ">=22.0.0"

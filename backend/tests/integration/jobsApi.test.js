@@ -17,27 +17,31 @@ vi.mock("../../src/app.js", () => ({
   run: mocks.run,
 }));
 
-vi.mock("../../src/pipeline/searchJobsWithCache.js", () => ({
+vi.mock("../../src/pipeline/searchJobsWithCache.ts", () => ({
   searchJobsWithCache: mocks.searchJobsWithCache,
 }));
 
-vi.mock("../../src/db/keywordsStore.js", () => ({
+vi.mock("../../src/db/keywordsStore.ts", () => ({
   loadKeywords: mocks.loadKeywords,
   normalizeKeywords: (keywords) => {
     if (!Array.isArray(keywords)) {
       return null;
     }
 
-    return [...new Set(keywords.map((item) => String(item ?? "").trim()).filter(Boolean))];
+    return [
+      ...new Set(
+        keywords.map((item) => String(item ?? "").trim()).filter(Boolean),
+      ),
+    ];
   },
   saveKeywords: mocks.saveKeywords,
 }));
 
-vi.mock("../../src/cache/cache.js", () => ({
+vi.mock("../../src/cache/cache.ts", () => ({
   getCacheStatus: mocks.getCacheStatus,
 }));
 
-import { createJobsApiApp } from "../../src/jobsApiApp.js";
+import { createJobsApiApp } from "../../src/jobsApiApp.ts";
 
 describe("jobs API", () => {
   let tmpDir;
@@ -51,7 +55,12 @@ describe("jobs API", () => {
       fromCache: false,
       cachedAt: "2026-04-09T00:00:00.000Z",
     });
-    mocks.loadKeywords.mockResolvedValue(["Java", "Spring", "RabbitMQ", "Docker"]);
+    mocks.loadKeywords.mockResolvedValue([
+      "Java",
+      "Spring",
+      "RabbitMQ",
+      "Docker",
+    ]);
     mocks.saveKeywords.mockImplementation(async (keywords) => {
       if (process.env.KEYWORDS_STORAGE_MODE === "env") {
         process.env.SEARCH_KEYWORDS = keywords.join(",");
@@ -93,7 +102,7 @@ describe("jobs API", () => {
       provider: "memory",
     });
   });
-  
+
   it("GET /api/jobs/files retorna lista vazia sem xlsx", async () => {
     tmpDir = mkdtempSync(join(tmpdir(), "jobs-api-"));
     const app = createJobsApiApp({ outputDir: tmpDir });
@@ -109,7 +118,9 @@ describe("jobs API", () => {
       .set("Origin", "https://painel-vagas-lake.vercel.app")
       .expect(200);
 
-    expect(res.headers["access-control-allow-origin"]).toBe("https://painel-vagas-lake.vercel.app");
+    expect(res.headers["access-control-allow-origin"]).toBe(
+      "https://painel-vagas-lake.vercel.app",
+    );
   });
 
   it("bloqueia origens nao autorizadas", async () => {
@@ -122,12 +133,14 @@ describe("jobs API", () => {
 
     expect(res.body.message).toBe("Origem nao permitida.");
   });
-  
+
   it("GET /api/jobs retorna 404 quando nao ha planilhas", async () => {
     tmpDir = mkdtempSync(join(tmpdir(), "jobs-api-"));
     const app = createJobsApiApp({ outputDir: tmpDir });
     const res = await request(app).get("/api/jobs").expect(404);
-    expect(res.body.message).toBe("Nenhum arquivo .xlsx encontrado na pasta output.");
+    expect(res.body.message).toBe(
+      "Nenhum arquivo .xlsx encontrado na pasta output.",
+    );
   });
 
   it("GET /api/jobs le o xlsx mais recente e retorna linhas", async () => {
@@ -135,7 +148,13 @@ describe("jobs API", () => {
     const xlsxPath = join(tmpDir, "vagas.xlsx");
     const workbook = XLSX.utils.book_new();
     const sheet = XLSX.utils.json_to_sheet([
-      { palavra: "React", titulo: "Dev", empresa: "ACME", local: "BR", link: "" },
+      {
+        palavra: "React",
+        titulo: "Dev",
+        empresa: "ACME",
+        local: "BR",
+        link: "",
+      },
     ]);
     XLSX.utils.book_append_sheet(workbook, sheet, "Vagas");
     XLSX.writeFile(workbook, xlsxPath);
@@ -154,9 +173,12 @@ describe("jobs API", () => {
     const sheet = XLSX.utils.json_to_sheet([{ titulo: "x" }]);
     XLSX.utils.book_append_sheet(workbook, sheet, "Vagas");
     XLSX.writeFile(workbook, join(tmpDir, "a.xlsx"));
-    
+
     const app = createJobsApiApp({ outputDir: tmpDir });
-    const res = await request(app).get("/api/jobs").query({ file: "nao-existe.xlsx" }).expect(404);
+    const res = await request(app)
+      .get("/api/jobs")
+      .query({ file: "nao-existe.xlsx" })
+      .expect(404);
     expect(res.body.message).toBe("Arquivo solicitado nao encontrado.");
   });
 
@@ -169,7 +191,7 @@ describe("jobs API", () => {
 
     const app = createJobsApiApp({ outputDir: tmpDir });
     const res = await request(app).post("/api/scraper/run").expect(200);
-    
+
     expect(mocks.run).toHaveBeenCalledTimes(1);
     expect(res.body.ok).toBe(true);
     expect(res.body.file).toBe("resultado.xlsx");
@@ -184,10 +206,10 @@ describe("jobs API", () => {
         new Promise((resolve) => {
           finishRun = resolve;
         }),
-      );
-      
-      const app = createJobsApiApp({ outputDir: tmpDir });
-      
+    );
+
+    const app = createJobsApiApp({ outputDir: tmpDir });
+
     const firstRequest = new Promise((resolve, reject) => {
       request(app)
         .post("/api/scraper/run")
@@ -222,20 +244,23 @@ describe("jobs API", () => {
     expect(res.body.message).toBe("Erro ao executar o scraper.");
     expect(res.body.error).toBe("falha no scraper");
   });
-  
+
   it("POST /api/keywords retorna 200 quando salvar as keywords", async () => {
     tmpDir = mkdtempSync(join(tmpdir(), "jobs-api-"));
     mocks.run.mockRejectedValue(new Error("Erro em pegar Keywords"));
-    
+
     const app = createJobsApiApp({ outputDir: tmpDir });
-    const payload = { keywords: ["Java","Spring","RabbitMQ","Docker"] };
-    
-    const res = await request(app).post("/api/keywords").send(payload).expect(200);
+    const payload = { keywords: ["Java", "Spring", "RabbitMQ", "Docker"] };
+
+    const res = await request(app)
+      .post("/api/keywords")
+      .send(payload)
+      .expect(200);
 
     expect(res.body).toEqual({
       ok: true,
       message: "Keywords atualizadas com sucesso.",
-      keywords: ["Java","Spring","RabbitMQ","Docker"]
+      keywords: ["Java", "Spring", "RabbitMQ", "Docker"],
     });
   });
 
@@ -279,11 +304,10 @@ describe("jobs API", () => {
 
   it("GET /api/keywords retorna 200 com as keywords", async () => {
     const app = createJobsApiApp({ outputDir: tmpDir });
-    const res = await request(app)
-      .get("/api/keywords").expect(200);
+    const res = await request(app).get("/api/keywords").expect(200);
     expect(res.body).toEqual({
       ok: true,
-      keywords: ["Java","Spring","RabbitMQ","Docker"]
+      keywords: ["Java", "Spring", "RabbitMQ", "Docker"],
     });
   });
 
@@ -322,7 +346,9 @@ describe("jobs API", () => {
 
   it("GET /api/jobs/search retorna 500 quando a busca falha", async () => {
     tmpDir = mkdtempSync(join(tmpdir(), "jobs-api-"));
-    mocks.searchJobsWithCache.mockRejectedValueOnce(new Error("falha na busca"));
+    mocks.searchJobsWithCache.mockRejectedValueOnce(
+      new Error("falha na busca"),
+    );
     const app = createJobsApiApp({ outputDir: tmpDir });
 
     const res = await request(app)
@@ -345,7 +371,9 @@ describe("jobs API", () => {
       .send({ keywords: "Java" })
       .expect(400);
 
-    expect(res.body.message).toBe("O campo 'keywords' deve ser um array de strings.");
+    expect(res.body.message).toBe(
+      "O campo 'keywords' deve ser um array de strings.",
+    );
   });
 
   it("POST /api/keywords retorna 500 quando saveKeywords falha", async () => {
@@ -386,7 +414,8 @@ describe("jobs API", () => {
       .set("x-forwarded-proto", "https")
       .expect(200);
 
-    expect(res.headers["strict-transport-security"]).toContain("max-age=31536000");
+    expect(res.headers["strict-transport-security"]).toContain(
+      "max-age=31536000",
+    );
   });
-
 });

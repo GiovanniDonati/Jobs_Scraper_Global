@@ -3,9 +3,13 @@ FROM node:24-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+COPY frontend/package*.json ./frontend/
 
-COPY . .
+RUN npm ci --workspace=frontend --include-workspace-root
+
+COPY frontend/ ./frontend/
+
+WORKDIR /app/frontend
 
 EXPOSE 5173
 
