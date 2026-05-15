@@ -8,6 +8,7 @@ import {
 import { searchJobs, type ScrapeParams } from "./adapters/goScraper";
 import { getConfig } from "./config";
 import { logWarn } from "./logger";
+import { authRoutes } from "./modules/auth/auth.routes";
 
 interface JobsApiAppOptions {
   outputDir?: string;
@@ -59,6 +60,8 @@ export function createJobsApiApp(_options: JobsApiAppOptions = {}) {
     next();
   });
   app.use(cors(corsOptions));
+
+  app.use("/api/auth", authRoutes);
 
   // ── health ────────────────────────────────────────────────────────────────
 

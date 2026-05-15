@@ -6,6 +6,7 @@ aceita
 acentos
 acesso
 achar
+acontece
 adicionais
 Adicionamos
 adzuna
@@ -40,7 +41,10 @@ atingido
 ativa
 ativas
 ativos
+atômica
+atômicas
 atuais
+atualização
 atualizadas
 aumentamos
 Aumentei
@@ -72,11 +76,13 @@ carregados
 carregamos
 cascadia
 casos
+Centraliza
 Certificados
 cespare
 chainalysis
 chainlink
 chamada
+Chamamos
 chave
 Chaves
 checamos
@@ -90,6 +96,7 @@ combinações
 commitar
 compartilhado
 completa
+complexa
 composta
 concluído
 concorrência
@@ -102,6 +109,7 @@ configurado
 configurados
 conflito
 conhecidas
+conjunto
 considere
 constrói
 contagem
@@ -145,6 +153,7 @@ devolvido
 diacríticos
 diferenciar
 diferentes
+dinamicamente
 direto
 disparado
 disponível
@@ -173,6 +182,7 @@ então
 envia
 enviado
 enviou
+envolver
 equivale
 equivalente
 ernstandyoung
@@ -189,6 +199,7 @@ esperada
 esperar
 estavam
 estilo
+estivesse
 Estranha
 estranho
 Estrutura
@@ -200,6 +211,7 @@ executar
 existem
 existente
 existirem
+expirado
 expirou
 explícito
 exporta
@@ -219,6 +231,7 @@ filtros
 Finaliza
 FINALIZADO
 fintech
+flexibilidade
 fluxo
 flyio
 fonte
@@ -228,6 +241,7 @@ formato
 fornecidas
 funciona
 funcionando
+futuro
 garantindo
 genérico
 goldmark
@@ -246,6 +260,7 @@ ignorado
 iguais
 implementa
 implementados
+Importando
 incompleto
 independente
 indisponivel
@@ -260,6 +275,7 @@ Inicializa
 inicializado
 Iniciando
 início
+injetar
 instacart
 Instancia
 inteligente
@@ -269,6 +285,7 @@ interrompe
 interrupção
 Intervalo
 Inválida
+invalidar
 isso
 jobsglobal
 jobsglobalscraper
@@ -295,10 +312,13 @@ Localização
 logar
 longo
 lote
+lugar
+mágica
 maior
 maioria
 maiúsculas
 mantém
+Mantemos
 manualmente
 Mapeando
 marca
@@ -311,6 +331,7 @@ mescladas
 mesma
 Mesmos
 metadados
+método
 MÉTRICA
 milissegundos
 mínimo
@@ -348,6 +369,7 @@ operações
 organização
 Origem
 origens
+orquestração
 otimizado
 outra
 pacote
@@ -361,15 +383,19 @@ paralelas
 paralelo
 parseia
 partir
+passos
 pegar
 pela
 pelos
 peloton
+pendentes
 permite
 permitida
+permitidos
 permitindo
 planetscale
 pôde
+poderia
 ponteiro
 populada
 populado
@@ -411,6 +437,7 @@ Quebrada
 quiser
 reais
 reaproveita
+recebe
 receber
 recente
 reconecta
@@ -453,6 +480,7 @@ sendo
 sensível
 separa
 separadas
+seria
 setar
 silencioso
 simplificado
@@ -482,6 +510,7 @@ tigra
 tipado
 titulo
 tiver
+transação
 trata
 tratamento
 travar
@@ -501,8 +530,12 @@ usam
 útil
 utilizando
 vaga
+validado
+Validamos
 validar
 validos
+valkey
+Valkey
 vamos
 várias
 variável

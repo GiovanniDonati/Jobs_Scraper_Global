@@ -1,8 +1,7 @@
-import { db } from "../../db/client.js";
-import { accounts } from "../../db/schema/accounts.js";
-import { DB } from "../../db/types/types.js";
-import { OAuthProfile } from "../types/auth.types.js";
-
+import { db } from "../../../db/client";
+import { accounts } from "../../../db/schema";
+import { DB } from "../../../db/types/types";
+import { OAuthProfile } from "../../types/auth.types";
 
 type CreateAccountParams = {
   userId: string;

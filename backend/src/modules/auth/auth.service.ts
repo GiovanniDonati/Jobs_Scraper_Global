@@ -1,10 +1,11 @@
+import { User } from "../../db/schema/users";
 import type {
   AuthCallbackParams,
   OAuthProfile,
   OAuthProvider,
   Session,
 } from "../types/auth.types";
-import { findOrCreateUser } from "../users/findOrCreateUser";
+import { findOrCreateUser } from "../users/functions/findOrCreateUser";
 import { providers } from "./providers/auth.provider";
 
 export class AuthService {
@@ -18,14 +19,20 @@ export class AuthService {
     return providerImpl.getAuthUrl(state);
   }
 
-  async handleCallback({ provider, code, state }: AuthCallbackParams): Promise<{
-    user: any; // vamos melhorar isso depois
+  async handleCallback({
+    provider,
+    code,
+    state,
+    callbackUrl,
+  }: AuthCallbackParams): Promise<{
+    user: User;
     session: Session;
   }> {
     const profile = await this.getProfileFromProvider({
       provider,
       code,
       state,
+      callbackUrl,
     });
 
     const user = await findOrCreateUser({
@@ -35,13 +42,17 @@ export class AuthService {
 
     const session = await this.createSession(user);
 
-    return { user, session };
+    return {
+      user,
+      session,
+    };
   }
 
   async getProfileFromProvider({
     provider,
     code,
     state,
+    callbackUrl,
   }: AuthCallbackParams): Promise<OAuthProfile> {
     const providerImpl = providers[provider];
 
@@ -49,7 +60,11 @@ export class AuthService {
       throw new Error("Provider inválido");
     }
 
-    return providerImpl.exchangeCode({ code, state });
+    return providerImpl.exchangeCode({
+      code,
+      state,
+      callbackUrl,
+    });
   }
 
   async createSession(user: { id: string }): Promise<Session> {

@@ -1,9 +1,9 @@
-import { db } from "../../db/client.js";
-import { users } from "../../db/schema/users.js";
-import { DB } from "../../db/types/types.js";
-import { generateUsername } from "../../utils/generateUsername.js";
-import { OAuthProfile } from "../types/auth.types.js";
-import { findUserByEmail } from "./findUsers.js";
+import { db } from "../../../db/client";
+import { users } from "../../../db/schema/users";
+import { DB } from "../../../db/types/types";
+import { generateUsername } from "../../../utils/generateUsername";
+import { OAuthProfile } from "../../types/auth.types";
+import { findUserByEmail } from "./findUsers";
 
 type CreateUserParams = {
   profile: OAuthProfile;

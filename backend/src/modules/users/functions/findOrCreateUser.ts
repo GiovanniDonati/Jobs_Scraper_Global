@@ -1,10 +1,8 @@
-import { db } from "../../db/client.js";
-import { OAuthProfile } from "../types/auth.types.js";
-import { createAccount } from "./createAccount.js";
-import { createUser } from "./createUser.js";
-import { findUserByEmail, findUserByProvider } from "./findUsers.js";
-
-
+import { db } from "../../../db/client";
+import { OAuthProfile } from "../../types/auth.types";
+import { createAccount } from "./createAccount";
+import { createUser } from "./createUser";
+import { findUserByEmail, findUserByProvider } from "./findUsers";
 
 type FindOrCreateUserParams = {
   provider: string;

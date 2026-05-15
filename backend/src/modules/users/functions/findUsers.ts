@@ -1,5 +1,5 @@
-import { db } from "../../db/client.js";
-import { DB } from "../../db/types/types.js";
+import { db } from "../../../db/client";
+import { DB } from "../../../db/types/types";
 
 export async function findUserByProvider(
   {

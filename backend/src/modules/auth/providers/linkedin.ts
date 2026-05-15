@@ -36,7 +36,7 @@ export async function exchangeLinkedinCode({
   state,
 }: {
   code: string;
-  state: string;
+  state?: string;
 }): Promise<OAuthProfile> {
   const config = await getConfig();
 

@@ -3,8 +3,7 @@ import {
   buildAuthorizationUrl,
   discovery,
 } from "openid-client";
-import { OAuthProfile } from "../../types/auth.types.js";
-
+import { ExchangeCodeParams, OAuthProfile } from "../../types/auth.types.js";
 
 let _config: Awaited<ReturnType<typeof discovery>> | null = null;
 
@@ -33,20 +32,18 @@ export async function getGoogleAuthUrl(state: string): Promise<string> {
 }
 
 export async function exchangeGoogleCode({
-  code,
+  callbackUrl,
   state,
-}: {
-  code: string;
-  state: string;
-}): Promise<OAuthProfile> {
+}: ExchangeCodeParams): Promise<OAuthProfile> {
   const config = await getConfig();
 
-  const tokens = await authorizationCodeGrant(
-    config,
-    new URL(
-      `${process.env.APP_URL}/auth/google/callback?code=${code}&state=${state}`,
-    ),
-  );
+  if (!state) {
+    throw new Error("State ausente");
+  }
+
+  const tokens = await authorizationCodeGrant(config, new URL(callbackUrl), {
+    expectedState: state,
+  });
 
   const claims = tokens.claims();
 
@@ -54,7 +51,6 @@ export async function exchangeGoogleCode({
     throw new Error("Invalid Google claims");
   }
 
-  // helper
   const getString = (value: unknown): string | undefined =>
     typeof value === "string" ? value : undefined;
 
@@ -63,18 +59,13 @@ export async function exchangeGoogleCode({
 
   return {
     id: getString(claims.sub) ?? "",
-
     email: getString(claims.email),
     name: getString(claims.name),
-
     given_name: getString(claims.given_name),
     family_name: getString(claims.family_name),
-
     picture: getString(claims.picture),
-
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
-
     expires_at: getNumber(claims.exp),
   };
 }

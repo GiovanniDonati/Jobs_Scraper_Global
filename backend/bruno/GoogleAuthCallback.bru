@@ -1,0 +1,21 @@
+meta {
+  name: GoogleAuthCallback
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/auth/google/callback?code=4%2F0AeoWuM-9o1BomIsJXolunjZ34_ezLHxLEgIKhI1-Pvh11jD4YHFPBvspBBu6P1WhwuSczA&state=q5iv69L89IMH6cuWAvUjAb5nnfpqYzSwBc1tyo0lZbo
+  body: none
+  auth: inherit
+}
+
+params:query {
+  code: 4%2F0AeoWuM-9o1BomIsJXolunjZ34_ezLHxLEgIKhI1-Pvh11jD4YHFPBvspBBu6P1WhwuSczA
+  state: q5iv69L89IMH6cuWAvUjAb5nnfpqYzSwBc1tyo0lZbo
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
