@@ -1,0 +1,344 @@
+# Backend - Documentação
+
+Este documento descreve as principais funcionalidades, rotas, módulos e variáveis de ambiente do backend do projeto.
+
+**Localização do código**: [backend](backend)
+
+## Visão geral
+
+- API REST em Express (TypeScript).
+- Scraper externo em Go integrado via HTTP (`GO_SCRAPER_URL`).
+- Banco de dados gerenciado com Drizzle (Postgres).
+- Autenticação via OAuth (Google/GitHub/LinkedIn) e credenciais (email/senha) com `iron-session`.
+- Cache/índices em memória (Redis) e integração com sistema Valkey para pesquisa rápida.
+- Documentação OpenAPI/Swagger disponível em `/docs` (quando habilitado).
+
+## Como executar (rápido)
+
+Requisitos: Node.js >= 22, PostgreSQL, Redis (opcional para cache), Go scraper (opcional)
+
+Instalar dependências e rodar API:
+
+```bash
+cd backend
+npm install
+npm run dev   # inicia em modo de desenvolvimento
+# ou
+npm start     # inicia a API
+```
+
+Rodar scraper (local):
+
+```bash
+npm run scraper
+```
+
+Testes:
+
+```bash
+npm test
+npm run test:watch
+```
+
+Scripts relevantes em `package.json`:
+
+- `start`, `dev`, `api` — iniciar servidor
+- `scraper`, `scraper:watch` — executar scraper (index.ts / Go)
+- `test`, `test:coverage`, `test:watch` — testes com Vitest
+- `db:generate`, `db:migrate`, `db:push` — comandos Drizzle
+
+## Arquitetura e módulos principais
+
+- `src/app.ts` — monta a aplicação Express, middlewares e rotas.
+- `src/server.ts` — inicia o servidor e registra Swagger (`/docs`).
+- `src/config.ts` — leitura e validação das variáveis de ambiente.
+- `src/swagger.ts` — gera especificação OpenAPI via `swagger-jsdoc`.
+
+Módulos principais:
+
+- `src/modules/auth` — OAuth providers, `AuthController`, `AuthService`, `credentials` (registro/login/logout).
+- `src/modules/users` — perfis e preferências do usuário (`UsersController`, `UsersService`).
+- `src/modules/savedJobs` — CRUD de vagas salvas (`SavedJobsController`, `SavedJobsService`).
+- `src/modules/*` — outros módulos relacionados a credenciais, buscas e integrações.
+
+Adaptadores externos:
+
+- `src/adapters/goScraper.ts` — envia requisições para o serviço Go que faz o scraping (`/scrape`).
+- `src/adapters/goKeywords.ts` — carrega e envia keywords do/para o serviço Go.
+
+Database / Schemas (Drizzle):
+
+- `src/db/schema/users.ts` — tabela `users`.
+- `src/db/schema/credentials.ts` — credenciais (email, hash).
+- `src/db/schema/keywords.ts` — palavras-chave (fonte `user|scraper`).
+- `src/db/schema/savedJobs.ts` — vagas salvas (`saved_jobs`) e enum `status`.
+- Migrações e snapshots em `drizzle/`.
+
+Cache & Indexes:
+
+- `src/lib/cache.ts` — helpers para Redis/Valkey; usado por `jobs.routes` para obter ids e buscar vagas em memória.
+- Busca por palavras-chave usa índices invertidos e interseção para eficiência.
+
+## Middlewares
+
+- `withSession` — integra `iron-session` (sessões + cookie `vagas_session`).
+- `requireAuth` — valida autenticação nas rotas que exigem usuário.
+- `securityHeaders` — cabeçalhos de segurança.
+- `cors` — configuração de CORS (opções em `src/middleware/cors.ts`).
+- `errorHandler` — tratamento centralizado de erros.
+
+## Endpoints principais
+
+Base: `/api`
+
+- Sistema
+  - `GET /api/health` — verifica disponibilidade (retorna `{ ok: true }`).
+  - `GET /docs` — UI do Swagger (quando habilitado).
+
+- Auth / OAuth
+  - `GET /api/auth/:provider/url` — retorna URL de autenticação (ex: `google`, `github`, `linkedin`).
+  - `GET /api/auth/:provider/callback` — callback OAuth — processa código/state e cria sessão.
+
+- Credenciais (email/senha)
+  - `POST /api/auth/register` — registra usuário (cria `users`, `credentials`, `userPreferences`) e inicia sessão.
+  - `POST /api/auth/login` — autentica e inicia sessão.
+  - `POST /api/auth/logout` — destroi sessão.
+  - `GET /api/auth/me` — retorna id do usuário autenticado.
+
+- Usuários
+  - `GET /api/users/profile` — retorna perfil do usuário autenticado.
+  - `PATCH /api/users/profile` — atualiza campos do perfil.
+  - `GET /api/users/preferences` — obtém preferências do usuário.
+  - `POST /api/users/preferences` — cria preferências (caso não existam).
+  - `PATCH /api/users/preferences` — atualiza preferências.
+
+- Jobs
+  - `GET /api/jobs/search?keywords=...` — busca vagas utilizando índices/Valkey/Redis. Retorna paginação e fonte (`source`).
+
+- Keywords
+  - `GET /api/keywords` — lista keywords persistidas no banco.
+  - `POST /api/keywords` — enfileira uma keyword para processamento pelo serviço Go (retorna 202).
+
+- Vagas salvas (Saved Jobs)
+  - `GET /api/saved-jobs` — lista vagas salvas do usuário.
+  - `GET /api/saved-jobs/:id` — obtém vaga salva por id.
+  - `POST /api/saved-jobs` — cria nova vaga salva.
+  - `PATCH /api/saved-jobs/:id` — atualiza vaga salva.
+  - `DELETE /api/saved-jobs/:id` — remove vaga salva.
+
+Observações de segurança nas rotas:
+
+- Rotas sob `/api/users`, `/api/jobs`, `/api/keywords` e `/api/saved-jobs` usam `withSession` + `requireAuth` (quando aplicável).
+- `auth` usa `withSession` para armazenar OAuth state e criar sessão.
+
+## Variáveis de ambiente importantes
+
+Definidas/consumidas em `src/config.ts` e outros módulos:
+
+- `HEADLESS` — modo headless do scraper (bool).
+- `WAIT_BETWEEN_SEARCHES_MS` — intervalo entre buscas (ms).
+- `PAGE_TIMEOUT_MS` — timeout de página (ms).
+- `MAX_PAGES_PER_KEYWORD` — limite de páginas por keyword.
+- `VIEWPORT_WIDTH`, `VIEWPORT_HEIGHT` — dimensões do browser.
+- `SEARCH_LOCATION`, `SEARCH_GEO_ID`, `SEARCH_LANGUAGE` — parâmetros de busca.
+- `REMOTE_ONLY` — filtrar vagas remotas.
+- `JOB_TYPES` — filtros de tipo de vaga.
+- `TIME_FILTER` — filtro temporal (ex: `r604800`).
+- `DATABASE_URL` — conexão com Postgres.
+- `VALKEY_URL` — endpoint do Valkey (se usado).
+- `GO_SCRAPER_URL` — URL do serviço Go que realiza scraping.
+- `SESSION_SECRET` — senha para `iron-session` (obrigatória em produção).
+- `PORT` — porta do servidor (padrão 3001).
+
+## Segurança e criptografia
+
+- Senhas armazenadas usando Argon2 (`argon2`), com opções configuradas no serviço de credenciais.
+- Cookies de sessão `httpOnly` e `secure` quando NODE_ENV=production.
+- Índices únicos e constraints no DB (ex: email/username/keyword uniques) definidos nas tabelas Drizzle.
+
+## Integração com serviço Go
+
+- `goScraper.ts` faz POST em `${GO_SCRAPER_URL}/scrape` com `ScrapeParams` e valida `ScrapeResponse`.
+- `goKeywords.ts` consulta e publica keywords via endpoints do serviço Go (`/api/keywords`).
+
+## Banco de dados
+
+- Uso de Drizzle ORM com tipos gerados em `src/db/schema`.
+- Tabelas: `users`, `credentials`, `keywords`, `saved_jobs`, `user_preferences`, etc.
+- Migrations em `drizzle/`.
+
+## Logs e observabilidade
+
+- `src/logger.ts` exporta `logInfo`, `logWarn`, etc.
+- Erros críticos são logados; rotas tratam respostas e retornam mensagens amigáveis.
+
+## Testes
+
+- Testes unitários e de integração com `vitest` em `tests/`.
+- Cobertura configurada em `test:coverage`.
+
+## Docker / Infra
+
+- `Dockerfile` presente no diretório `backend`.
+- `docker-compose.yml` no projeto raiz orquestra serviços (possivelmente `scraper-go`, `postgres`, `redis`).
+
+## Pontos de atenção / Próximos passos sugeridos
+
+- Garantir `SESSION_SECRET` seguro em produção.
+- Documentar contrato do Valkey (se for serviço externo) e endpoints do Go scraper com exemplos de payload.
+- Adicionar exemplos de requests/responses no Swagger para endpoints críticos (auth, jobs/search).
+
+---
+
+Para editar ou complementar esta documentação, abra [backend/BACKEND.md](backend/BACKEND.md).
+
+## Exemplos de Request / Response
+
+Seguem exemplos práticos para os endpoints mais usados. Ajuste `HOST` para seu ambiente (ex: `http://localhost:3001`).
+
+- Registrar (credentials)
+
+Request:
+
+POST /api/auth/register
+
+```json
+{
+  "email": "user@example.com",
+  "password": "StrongP@ssw0rd",
+  "name": "Fulano"
+}
+```
+
+Response (201):
+
+```json
+{
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "displayName": "Fulano",
+    "username": "fulano",
+    "emailVerified": false
+  },
+  "session": { "userId": "uuid" }
+}
+```
+
+- Login (credentials)
+
+Request:
+
+POST /api/auth/login
+
+```json
+{
+  "email": "user@example.com",
+  "password": "StrongP@ssw0rd"
+}
+```
+
+Response (200):
+
+```json
+{
+  "user": { "id": "uuid", "email": "user@example.com", "username": "fulano" },
+  "session": { "userId": "uuid" }
+}
+```
+
+- Buscar vagas (Jobs search)
+
+Request:
+
+GET /api/jobs/search?keywords=react,node&page=1&limit=10
+
+Response (200):
+
+```json
+{
+  "total": 123,
+  "page": 1,
+  "limit": 10,
+  "totalPages": 13,
+  "hasNext": true,
+  "hasPrev": false,
+  "jobs": [ { "id": "job-id", "title": "Frontend Developer", "company": "ACME" } ],
+  "source": "valkey_filtered_by_keywords:react+node"
+}
+```
+
+- Enfileirar keyword
+
+Request:
+
+POST /api/keywords
+
+```json
+{
+  "keyword": "typescript"
+}
+```
+
+Response (202):
+
+```json
+{
+  "ok": true,
+  "message": "Keyword enfileirada para processamento."
+}
+```
+
+- Vagas salvas (Saved Jobs) — criar
+
+Request:
+
+POST /api/saved-jobs
+
+```json
+{
+  "jobLink": "https://www.linkedin.com/jobs/view/123",
+  "jobTitle": "Backend Developer",
+  "company": "ACME",
+  "location": "São Paulo",
+  "source": "linkedin",
+  "keyword": "node"
+}
+```
+
+Response (201):
+
+```json
+{
+  "id": "uuid",
+  "userId": "uuid",
+  "jobLink": "https://...",
+  "jobTitle": "Backend Developer",
+  "company": "ACME",
+  "location": "São Paulo",
+  "status": "saved",
+  "createdAt": "2026-05-26T..."
+}
+```
+
+- Perfil do usuário
+
+Request:
+
+GET /api/users/profile
+
+Response (200):
+
+```json
+{
+  "id": "uuid",
+  "displayName": "Fulano",
+  "username": "fulano",
+  "email": "user@example.com",
+  "avatarUrl": null
+}
+```
+
+---
+
+Os exemplos acima são intencionais e servem como referência rápida para integrar o frontend ou scripts que consomem a API.
