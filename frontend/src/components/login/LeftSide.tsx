@@ -26,9 +26,8 @@ export default function LeftSide() {
       </div>
 
       <div className="absolute left-8 xl:left-12 top-[35%] space-y-4 z-10 w-full max-w-[220px] xl:max-w-[240px]">
-
-        <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-md border border-neutral-100 dark:border-slate-700 transition-transform hover:scale-105">
-          <div className="bg-[#004726] dark:bg-emerald-600 p-2.5 rounded-xl text-white flex-shrink-0">
+        <div className="flex flex-col gap-2.5 bg-white/20 backdrop-blur-md p-3 rounded-2xl border border-white/40 hover:border-emerald-500 transition-all duration-300">
+          <div className="bg-[#004726] dark:bg-emerald-600 p-2.5 rounded-xl text-white w-fit">
             <Search className="h-5 w-5" />
           </div>
           <p className="text-xs font-bold text-neutral-800 dark:text-neutral-200 leading-tight">
@@ -36,17 +35,17 @@ export default function LeftSide() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-md border-2 border-emerald-500/30 dark:border-emerald-500/50 translate-x-6 xl:translate-x-10 transition-transform hover:scale-105">
-          <div className="bg-[#004726] dark:bg-emerald-600 p-2.5 rounded-xl text-white flex-shrink-0">
+        <div className="flex flex-col gap-2.5 bg-white/20 backdrop-blur-md p-3 rounded-2xl border border-white/40 hover:border-emerald-500 translate-x-6 xl:translate-x-10 transition-all duration-300">
+          <div className="bg-[#004726] dark:bg-emerald-600 p-2.5 rounded-xl text-white w-fit">
             <Bell className="h-5 w-5" />
           </div>
           <p className="text-xs font-bold text-neutral-800 dark:text-neutral-200 leading-tight">
             Novas oportunidades
           </p>
         </div>
-å
-        <div className="flex items-center gap-3 bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-md border border-neutral-100 dark:border-slate-700 transition-transform hover:scale-105">
-          <div className="bg-[#004726] dark:bg-emerald-600 p-2.5 rounded-xl text-white flex-shrink-0">
+
+        <div className="flex flex-col gap-2.5 bg-white/20 backdrop-blur-md p-3 rounded-2xl border border-white/40 hover:border-emerald-500 transition-all duration-300">
+          <div className="bg-[#004726] dark:bg-emerald-600 p-2.5 rounded-xl text-white w-fit">
             <TrendingUp className="h-5 w-5" />
           </div>
           <p className="text-xs font-bold text-neutral-800 dark:text-neutral-200 leading-tight">
