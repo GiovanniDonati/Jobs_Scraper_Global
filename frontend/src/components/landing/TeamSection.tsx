@@ -19,9 +19,17 @@ const INITIAL_TEAM: Contributor[] = [
   {
     id: 1,
     login: "Benevanio",
-    avatar_url: "https://avatars.githubusercontent.com/u/Benevanio",
+    avatar_url: "https://github.com/Benevanio.png",
     html_url: "https://github.com/Benevanio",
     contributions: 188,
+    type: "User"
+  },
+  {
+    id: 104951475,
+    login: "PedroLucas1337",
+    avatar_url: "https://github.com/PedroLucas1337.png",
+    html_url: "https://github.com/PedroLucas1337",
+    contributions: 0,
     type: "User"
   }
 ];
@@ -43,8 +51,30 @@ export default function TeamSection() {
         return res.json();
       })
       .then((data: unknown) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const realUsers = (data as Contributor[]).filter(user => user.type === 'User');
+        if (Array.isArray(data)) {
+          let realUsers = (data as Contributor[])
+            .filter(user => user.type === 'User')
+            .map(user => {
+              if (user.login.toLowerCase() === "pedrolucas1337") {
+                return { ...user, avatar_url: "https://github.com/PedroLucas1337.png" };
+              }
+              return user;
+            });
+
+          const hasPedro = realUsers.some(user => user.login.toLowerCase() === "pedrolucas1337");
+
+          if (!hasPedro) {
+            const pedroObj: Contributor = {
+              id: 104951475,
+              login: "PedroLucas1337",
+              avatar_url: "https://github.com/PedroLucas1337.png",
+              html_url: "https://github.com/PedroLucas1337",
+              contributions: 0,
+              type: "User"
+            };
+            realUsers = [...realUsers, pedroObj];
+          }
+
           if (realUsers.length > 0) setContributors(realUsers);
         }
       })
@@ -59,18 +89,22 @@ export default function TeamSection() {
         <h2 className="text-3xl font-bold mb-2 text-gray-800 dark:text-white">
           Nosso <span className="bg-gradient-to-r from-blue-600 to-violet-500 bg-clip-text text-transparent">Time</span> de Contribuidores
         </h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-10 text-sm sm:text-base ">
-          Conheça as mentes brilhantes por trás do <p className='font-bold text-white'><span className="text-blue-500 font-bold">&lt;</span>
-          Cand<span className="text-amber-500 font-bold">!</span>Date< span className="text-purple-500 font-bold">!</span>
-          <span className="text-blue-500 font-bold">&gt;</span> </p>
-        </p>
+
+        <div className="text-gray-500 dark:text-gray-400 mb-10 text-sm sm:text-base">
+          Conheça as mentes brilhantes por trás do{" "}
+          <span className='font-bold text-gray-800 dark:text-white inline-block block sm:inline'>
+            <span className="text-blue-500 font-bold">&lt;</span>
+            Cand<span className="text-amber-500 font-bold">!</span>Date<span className="text-purple-500 font-bold">!</span>
+            <span className="text-blue-500 font-bold">&gt;</span>
+          </span>
+        </div>
 
         <div className="w-full block min-h-[300px] slider-container">
           <Swiper
             modules={[Pagination, Autoplay]}
             spaceBetween={24}
             slidesPerView={1}
-            loop={true}
+            loop={contributors.length > 1}
             speed={5000}
             pagination={{ clickable: true }}
             autoplay={{
@@ -97,8 +131,11 @@ export default function TeamSection() {
                     <h4 className="font-semibold text-lg text-gray-900 dark:text-zinc-100 mb-1 truncate w-full">
                       {user.login}
                     </h4>
-                    <p className="text-xs text-gray-400 dark:text-zinc-500 mb-4">
-                      {user.contributions} {user.contributions === 1 ? 'commit' : 'commits'}
+
+                    <p className="text-xs font-medium text-gray-400 dark:text-zinc-500 mb-4">
+                      {user.login.toLowerCase() === "pedrolucas1337"
+                        ? "QA"
+                        : `${user.contributions} ${user.contributions === 1 ? 'commit' : 'commits'}`}
                     </p>
                   </div>
                   <a
@@ -121,7 +158,6 @@ export default function TeamSection() {
         .slider-container .swiper-wrapper {
           transition-timing-function: linear !important;
         }
-        /* Cor interna da bolinha ativa da paginação combinando com o roxo/azul do sistema */
         .slider-container .swiper-pagination-bullet-active {
           background: #4f46e5 !important;
         }
