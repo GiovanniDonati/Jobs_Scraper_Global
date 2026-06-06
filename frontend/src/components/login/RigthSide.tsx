@@ -1,10 +1,66 @@
-import { Eye } from "lucide-react"
+import { useState, FormEvent } from "react"
+import { Eye, EyeOff, ArrowLeft } from "lucide-react"
 import { Image } from "@unpic/react"
 
 export default function RightSide() {
+  const [showPassword, setShowPassword] = useState(false)
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+
+  const [emailError, setEmailError] = useState("")
+  const [passwordError, setPasswordError] = useState("")
+
+  const handleRevealPassword = () => {
+    setShowPassword((prev) => !prev)
+  }
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+
+    setEmailError("")
+    setPasswordError("")
+
+    let isValid = true
+
+    if (!email) {
+      setEmailError("O campo de e-mail é obrigatório.")
+      isValid = false
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(email)) {
+        setEmailError("Por favor, insira um e-mail válido.")
+        isValid = false
+      }
+    }
+
+    if (!password) {
+      setPasswordError("O campo de senha é obrigatório.")
+      isValid = false
+    } else if (password.length < 6) {
+      setPasswordError("A senha precisa conter pelo menos 6 caracteres.")
+      isValid = false
+    }
+
+    if (isValid) {
+      console.log("Formulário válido! Enviando dados:", { email, password })
+        // inserir a logica da api dps
+    }
+  }
+
   return (
-    <main className="flex w-full lg:w-1/2 flex-col justify-center px-6 py-12 sm:px-16 lg:px-20 xl:px-24 bg-white dark:bg-slate-900 min-h-screen transition-colors duration-300">
+    <main className="flex w-full lg:w-1/2 flex-col justify-center px-6 py-12 sm:px-16 lg:px-20 xl:px-24 bg-white dark:bg-slate-900 min-h-screen transition-colors duration-300 relative">
       <div className="mx-auto w-full max-w-md">
+
+        <div className="mb-6">
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors group"
+          >
+            <ArrowLeft className="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" />
+            Voltar para a página principal
+          </a>
+        </div>
 
         <div className="text-center mb-8">
           <h2 className="text-4xl font-extrabold tracking-tight text-neutral-900 dark:text-white flex items-center justify-center gap-1 select-none">
@@ -20,7 +76,8 @@ export default function RightSide() {
           </p>
         </div>
 
-        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
               Email
@@ -28,10 +85,18 @@ export default function RightSide() {
             <input
               id="email"
               type="email"
-              defaultValue=""
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Ex: bene17@gmail.com"
-              className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow shadow-sm"
+              className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 transition-shadow shadow-sm ${
+                emailError
+                  ? "border-red-500 focus:ring-red-500 dark:border-red-500"
+                  : "border-neutral-300 dark:border-slate-700 focus:ring-emerald-500"
+              }`}
             />
+            {emailError && (
+              <p className="mt-1.5 text-xs text-red-500 font-medium">{emailError}</p>
+            )}
           </div>
 
           <div>
@@ -41,19 +106,27 @@ export default function RightSide() {
             <div className="relative">
               <input
                 id="senha"
-                type="password"
-                defaultValue=""
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Ex: ••••••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-neutral-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow shadow-sm"
+                className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 transition-shadow shadow-sm ${
+                  passwordError
+                    ? "border-red-500 focus:ring-red-500 dark:border-red-500"
+                    : "border-neutral-300 dark:border-slate-700 focus:ring-emerald-500"
+                }`}
               />
               <button
                 type="button"
-                onClick={revelPassword}
+                onClick={handleRevealPassword}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-neutral-400 dark:text-neutral-500 hover:text-neutral-600 dark:hover:text-neutral-300"
               >
-                <Eye className="h-5 w-5" />
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
+            {passwordError && (
+              <p className="mt-1.5 text-xs text-red-500 font-medium">{passwordError}</p>
+            )}
           </div>
 
           <div className="flex items-center justify-between text-sm pt-1">
