@@ -72,4 +72,57 @@
     @apply m-0 p-0 bg-background text-foreground antialiased;
     overscroll-behavior: none;
   }
+
+  .phone-input-custom {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .phone-input-custom .PhoneInputCountry {
+    display: flex;
+    align-items: center;
+    padding: 0 12px 0 4px;
+    border-right: 1px solid #e5e7eb;
+    margin-right: 12px;
+    cursor: pointer;
+  }
+
+  .phone-input-custom .PhoneInputCountrySelect {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+
+  .phone-input-custom .PhoneInputCountryIcon {
+    width: 24px;
+    height: 18px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .phone-input-custom .PhoneInputCountrySelectArrow {
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid #9ca3af;
+    border-bottom: 1.5px solid #9ca3af;
+    transform: rotate(45deg);
+    margin-left: 6px;
+    margin-top: -3px;
+  }
+
+  .phone-input-custom .PhoneInputInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: inherit;
+  }
+
+  .dark .phone-input-custom .PhoneInputCountry {
+    border-right-color: #475569;
+  }
 }
