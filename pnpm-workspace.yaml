@@ -6,6 +6,8 @@ allowBuilds:
   "@scarf/scarf": true
   argon2: true
   electron: true
+  electron-winstaller: true
+  es5-ext: true
   esbuild: true
   msw: true
 minimumReleaseAgeExclude:

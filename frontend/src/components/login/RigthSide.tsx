@@ -1,7 +1,10 @@
 import { useState, FormEvent } from "react"
-import { Eye, EyeOff, ArrowLeft } from "lucide-react"
+import { Eye, EyeOff, ArrowLeft, Github, Linkedin } from "lucide-react"
 import { Image } from "@unpic/react"
 import { motion } from "framer-motion"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/context/AuthContext"
+import { api } from "@/services/api"
 
 const STATIC_STARS = Array.from({ length: 40 }).map((_, i) => {
   const random = (min: number, max: number) => Math.random() * (max - min) + min;
@@ -45,21 +48,56 @@ function StarsBackground() {
 }
 
 export default function RightSide() {
-  const [showPassword, setShowPassword] = useState(false)
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
+  const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
   const [emailError, setEmailError] = useState("")
   const [passwordError, setPasswordError] = useState("")
+  const [globalError, setGlobalError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleRevealPassword = () => setShowPassword((prev) => !prev)
 
-  const handleSubmit = (e: FormEvent) => {
+  async function handleOAuthLogin(provider: "google" | "github" | "linkedin") {
+    try {
+      setGlobalError("");
+      setIsSubmitting(true);
+
+      const response = await api.get(`/auth/${provider}/url`);
+
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        throw new Error("URL de redirecionamento não encontrada.");
+      }
+    } catch (error: unknown) {
+      console.error(`Erro ao iniciar OAuth com ${provider}:`, error);
+
+      let apiError = `Não foi possível conectar ao provedor de login com o ${provider}.`;
+
+      // Validação defensiva do erro do Axios
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as { response?: { data?: { error?: string } } };
+        if (typeof axiosError.response?.data?.error === "string") {
+          apiError = axiosError.response.data.error;
+        }
+      }
+
+      setGlobalError(apiError);
+      setIsSubmitting(false);
+    }
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
 
     setEmailError("")
     setPasswordError("")
+    setGlobalError("")
 
     let isValid = true
 
@@ -82,8 +120,28 @@ export default function RightSide() {
       isValid = false
     }
 
-    if (isValid) {
-      console.log("Formulário válido!", { email, password })
+    if (!isValid) return;
+
+    setIsSubmitting(true)
+
+    try {
+      await login({ email, password });
+      navigate("/app");
+    } catch (err: unknown) {
+      console.error(err);
+      let errorMessage = "Credenciais inválidas ou erro de conexão.";
+
+      // Validação defensiva do erro repassado pelo Contexto/Axios
+      if (err && typeof err === "object" && "response" in err) {
+        const axiosError = err as { response?: { data?: { error?: string } } };
+        if (typeof axiosError.response?.data?.error === "string") {
+          errorMessage = axiosError.response.data.error;
+        }
+      }
+
+      setGlobalError(errorMessage);
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -122,6 +180,13 @@ export default function RightSide() {
       </div>
 
       <form className="relative z-10 space-y-6 w-full max-w-2xl mx-auto my-auto" onSubmit={handleSubmit}>
+
+        {globalError && (
+          <div className="p-3.5 bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl text-sm font-semibold text-center backdrop-blur-sm">
+            {globalError}
+          </div>
+        )}
+
         <div>
           <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-1.5">
             Email
@@ -129,6 +194,7 @@ export default function RightSide() {
           <input
             id="email"
             type="email"
+            disabled={isSubmitting}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Ex: bene17@gmail.com"
@@ -149,6 +215,7 @@ export default function RightSide() {
             <input
               id="senha"
               type={showPassword ? "text" : "password"}
+              disabled={isSubmitting}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Ex: ••••••••••••"
@@ -185,11 +252,12 @@ export default function RightSide() {
 
         <motion.button
           type="submit"
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 hover:opacity-95 text-white py-3.5 px-4 rounded-xl font-bold text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-md shadow-blue-500/10 cursor-pointer"
+          disabled={isSubmitting}
+          whileHover={{ scale: isSubmitting ? 1 : 1.01 }}
+          whileTap={{ scale: isSubmitting ? 1 : 0.99 }}
+          className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 hover:opacity-95 text-white py-3.5 px-4 rounded-xl font-bold text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-md shadow-blue-500/10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Entrar
+          {isSubmitting ? "Entrando..." : "Entrar"}
         </motion.button>
       </form>
 
@@ -204,16 +272,31 @@ export default function RightSide() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <button className="flex justify-center items-center py-3 px-4 border border-gray-200 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-800/50 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-all shadow-sm cursor-pointer">
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => handleOAuthLogin("google")}
+            className="flex justify-center items-center py-3 px-4 border border-gray-200 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-800/50 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <Image src="/google.png" alt="Google" width={20} height={20} className="object-contain" />
           </button>
-          <button className="flex justify-center items-center py-3 px-4 border border-gray-200 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-800/50 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-all shadow-sm cursor-pointer">
-            <Image src="/facebook.png" alt="Facebook" width={20} height={20} className="object-contain" />
+
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => handleOAuthLogin("linkedin")}
+            className="flex justify-center items-center py-3 px-4 border border-gray-200 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-800/50 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Linkedin className="h-5 text-blue-500"/>
           </button>
-          <button className="flex justify-center items-center py-3 px-4 border border-gray-200 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-800/50 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-all shadow-sm cursor-pointer">
-            <svg className="h-5 w-5 fill-gray-900 dark:fill-white transition-colors" viewBox="0 0 24 24">
-              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.21.67-2.93 1.49-.62.69-1.16 1.84-1.01 2.96 1.12.09 2.27-.58 2.95-1.39z" />
-            </svg>
+
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => handleOAuthLogin("github")}
+            className="flex justify-center items-center py-3 px-4 border border-gray-200 dark:border-neutral-800 rounded-xl bg-white/50 dark:bg-neutral-800/50 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Github className="h-5 text-gray-900 dark:text-white"/>
           </button>
         </div>
       </div>
