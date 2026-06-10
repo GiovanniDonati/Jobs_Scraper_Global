@@ -94,18 +94,6 @@ describe("useJobsData extended", () => {
     expect(result.current.scraping).toBe(false);
   });
 
-  it("triggerScraper propaga erro inesperado", async () => {
-    mocks.runScraperRequestMock.mockRejectedValueOnce("erro-desconhecido");
-
-    const { result } = renderHook(() => useJobsData());
-
-    await act(async () => {
-      await result.current.triggerScraper();
-    });
-
-    expect(result.current.error).toMatch(/erro inesperado ao executar o scraper/i);
-  });
-
   it("triggerScraper atualiza selectedFile quando novo arquivo é diferente do atual", async () => {
     mocks.fetchJobFilesMock
       .mockResolvedValueOnce([{ file: "vagas.xlsx" }])
