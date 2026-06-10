@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // =====================
 // MOCKS
@@ -64,7 +64,6 @@ import RegisterSide from "@/components/login/RegisterSide";
 // TEST SUITE
 // =====================
 describe("RegisterSide", () => {
-  const originalLocation = window.location;
 
   beforeEach(() => {
     mockRegister.mockReset();
