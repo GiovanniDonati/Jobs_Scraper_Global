@@ -5,13 +5,11 @@ let _config: Awaited<ReturnType<typeof discovery>> | null = null;
 
 async function getConfig() {
   if (_config) return _config;
-
   _config = await discovery(
     new URL("https://www.linkedin.com/oauth"),
     process.env.LINKEDIN_CLIENT_ID!,
     process.env.LINKEDIN_CLIENT_SECRET!,
   );
-
   return _config;
 }
 
@@ -23,7 +21,6 @@ export async function getLinkedinAuthUrl(state: string): Promise<string> {
     scope: "openid profile email",
     state,
   });
-
   return `https://www.linkedin.com/oauth/v2/authorization?${params.toString()}`;
 }
 
@@ -51,7 +48,6 @@ export async function exchangeLinkedinCode({
   );
 
   const tokenData = await tokenRes.json();
-
   if (!tokenRes.ok)
     throw new Error(tokenData.error_description || "Token exchange failed");
 
@@ -59,7 +55,6 @@ export async function exchangeLinkedinCode({
   const userRes = await fetch("https://api.linkedin.com/v2/userinfo", {
     headers: { Authorization: `Bearer ${tokenData.access_token}` },
   });
-
   const user = await userRes.json();
 
   return {

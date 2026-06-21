@@ -1,5 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom";
+import { act, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+
+vi.stubGlobal("IntersectionObserver", class {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+  constructor(public callback: IntersectionObserverCallback) {}
+});
 
 vi.mock("@/hooks/useTheme", () => ({
   useTheme: () => ({ resolvedTheme: "light", toggleTheme: vi.fn() }),
@@ -46,8 +55,20 @@ vi.mock("@/hooks/useJobsPagination", () => ({
 import App from "@/App";
 
 describe("App", () => {
-  it("renderiza painel principal", () => {
-    render(<App />);
-    expect(screen.getByAltText("Painel de Vagas")).toBeInTheDocument();
+  it("renderiza a landing page após o loading", () => {
+    vi.useFakeTimers()
+    try {
+      render(
+        <MemoryRouter initialEntries={["/"]}>
+          <App />
+        </MemoryRouter>
+      )
+      act(() => {
+        vi.runAllTimers();
+      });
+      expect(screen.getAllByText(/funcionalidades/i).length).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
